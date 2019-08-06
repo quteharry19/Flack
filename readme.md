@@ -10,7 +10,7 @@ once logged in every change of channel will update the localStorage Variable on 
 
 a sidebar navigation is used to display the existing channel and a link to add a new unique channel
 
-username , time is properly displayed with every message
+username , time stamp  is properly displayed with every message
 
 represented self name as "me" 
 
