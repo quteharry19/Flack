@@ -1,0 +1,25 @@
+{% extends 'layout.html' %}
+
+{% block content %}
+<script src="{{ url_for('static',filename='js/logincheck.js') }}"></script>
+<div class="container">
+    <h3>Flack Messenger </h3>
+    <form action="/login" method="POST">
+        <div class="col-8">
+            <div class="input-group">
+                <div class="input-group-prepend">
+                    <span class="input-group-text">@</span>
+                </div>
+                <input name='username' type="text" class="form-control" placeholder="Display Name" autofocus
+                    autocomplete=false required>
+                <div class="input-group-append">
+                    <button type="submit" class=" float-right btn btn-sm btn-outline-secondary">
+                        <i class=" ion-unlocked"></i>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </form>
+</div>
+
+{% endblock %}

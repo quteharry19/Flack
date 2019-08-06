@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge,chrome=1">
+    <title>FlackJS {% block title %} {% endblock %}</title>
+
+    <!-- Links  -->
+    <link href="{{ url_for('static',filename='css/sketchybootstrap.css') }}" rel="stylesheet" type="text/css" >
+    <link href="{{ url_for('static',filename='css/side-swipe-menu-1.css') }}" rel="stylesheet" type="text/css" >
+    <!-- <link href="{{ url_for('static',filename='css/side-swipe-menu.css') }}" rel="stylesheet" type="text/css" > -->
+    <link href="{{ url_for('static',filename='css/styles.css') }}" rel="stylesheet" type="text/css" >
+    <link href="{{ url_for('static',filename='fonts/ionicons.min.css') }}" rel="stylesheet" type="text/css" media="screen">
+    <link href="{{ url_for('static',filename='img/app.ico') }}" rel="icon" type="img/jpeg" media="screen" >
+
+    <!-- Default Scripts -->
+    <script src="{{ url_for('static',filename='js/jquery.min.js') }}" ></script>
+    <script src=" {{ url_for('static',filename='js/bootstrap.min.js') }} "></script>
+    <script src=" {{ url_for('static',filename='js/popper.min.js') }} "></script>
+    <script src=" {{ url_for('static',filename='js/side-swipe-menu-1.js') }} "></script>
+    <script src=" {{ url_for('static',filename='js/side-swipe-menu.js') }} "></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/1.3.6/socket.io.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/handlebars.js/4.0.11/handlebars.min.js"></script>
+</head>
+<body>
+    <!-- Navbar -->
+    <nav class="navbar navbar-dark navbar-expand-md" id="app-navbar">
+        <div class="container-fluid">
+            <a class="navbar-brand" href="/">
+                <i class="icon ion-social-whatsapp-outline" id="brand-logo">
+                    FlackJS
+                </i>
+            </a>
+            <button data-toggle="collapse" class="navbar-toggler" data-target="#navcol-1">
+                <span class="sr-only">Toggle navigation</span>
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navcol-1">
+                <ul class="nav navbar-nav ml-auto">
+                    <li class="nav-item" role="presentation"><a class="nav-link active" href="/">Home</a></li>
+                    <li class="nav-item" role="presentation"><a class="nav-link" href="/">Login</a></li>
+                    <li class="nav-item" role="presentation"><a class="nav-link" onclick="logout()" href="/">Log out</a></li>
+                    <li class="nav-item" role="presentation"><a class="nav-link" href="{{ url_for('about') }}">About</a></li>
+                </ul>
+            </div>
+            <script>
+                function logout () {
+                    localStorage.removeItem('username');
+                    localStorage.removeItem('channel');
+                }
+            </script>
+        </div>
+    </nav>
+
+    <div class="container x-open-sidebar">
+
+        <!-- Side Bar -->
+        <div id="sidebar">
+            {% block sidebar %}
+            {% endblock %}
+        </div>
+
+        <div class="main-content">
+            <div class="swipe-area">
+                <a id="sidebar-toggle" data-toggle=".container" href="#">
+                    <span class="bar"></span>
+                    <span class="bar"></span>
+                    <span class="bar"></span>
+                </a>
+                <a href="#" style="transform: rotate(-90deg);margin-top: 30px;"><h6>Channels</h6></a>
+            </div>
+
+            <div class="content">
+                {% block content %}
+                {% endblock %}
+            </div>
+        </div>
+    </div>
+
+</body>
+</html>
