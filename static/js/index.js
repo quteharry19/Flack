@@ -143,8 +143,8 @@ document.addEventListener('DOMContentLoaded', () => {
     })
 
     socket.on('announce disconnected', (data)=>{
-        alert(data.user + ' disconnected');
-    })
+        //alert(data.user + ' disconnected');
+    });
     
     document.querySelector('#sendmsg').onclick = () =>{
         if (document.querySelector('#msgText').value != ''){

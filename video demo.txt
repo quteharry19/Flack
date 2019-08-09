@@ -1,0 +1,23 @@
+hello cs50,
+this is Project 2 Flack - the messenger app
+i had hosted is app to 
+https://flack.azurewebsites.net
+
+i had completed all the requirements of project 2.
+
+1.display name will be asked only on first visit to the site, if user press logout button the browser's localStorage will be cleared.
+(your first visit will be logged to the school channel by default) 
+
+2.create channel - open the side bar and hit + channel to create a new channel
+
+3.channel list - is on the side bar
+
+4.select any channel to see messages in that channel which is restricted to 100 messages per channel on the server side
+
+5.type message and hit 'Enter' or 'Send button' to send message to the channel with Socket io 
+
+6. last channel will be stored in the localStorage of the browser 
+
+7. you can delete any messages send by you only by pressing the red outlined delete icon
+
+8. send private message to the user which will be delivered if he/she is online else you will get a revert alert about user is not online.
