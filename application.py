@@ -21,10 +21,6 @@ messages ={
         {'user':'Riya','msg':'hello1 School','time':'123'},
         {'user':'Diya','msg':'hello2 School','time':'1234'}
         ],
-    'University':[
-        {'user':'Riya','msg':'hello1 university','time':'123'},
-        {'user':'Diya','msg':'hello2 university','time':'1234'}
-    ],
     'Friends':[
         {'user':'Diya','msg':'hello1 Friends','time':'123'}
     ],

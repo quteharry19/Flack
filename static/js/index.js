@@ -16,10 +16,10 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     });
 
-    document.querySelector('#uploadForm').onsubmit = () =>{
-        document.querySelector('#uploadUser').value = localStorage.getItem('username');
-        document.querySelector('#uploadChannel').value = localStorage.getItem('channel');
-    }
+    // document.querySelector('#uploadForm').onsubmit = () =>{
+    //     document.querySelector('#uploadUser').value = localStorage.getItem('username');
+    //     document.querySelector('#uploadChannel').value = localStorage.getItem('channel');
+    // }
 
     document.querySelectorAll('.channel').forEach( channel => {
         channel.onclick = () => {
@@ -35,6 +35,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     document.querySelector('#createchannel').onclick = () => {
         document.querySelector('#formchannel').style.display = 'block';
+        document.querySelector('.container').className = "container x-open-sidebar";
     }    
 
     delmsg = () => {
@@ -137,7 +138,10 @@ document.addEventListener('DOMContentLoaded', () => {
         })
 
         if (channel == data.channel && username != data.username ){
-            document.querySelector('#chatbox').innerHTML += 'User ' + data.username + ' joined now'
+            const para = document.createElement('p')
+            para.innerHTML = 'User ' + data.username + ' joined now'
+            para.style.color = 'white';
+            document.querySelector('#chatbox').append(para)
             document.querySelector('#chatbox').scrollTop = document.querySelector('#chatbox').scrollHeight;
         }
     })
