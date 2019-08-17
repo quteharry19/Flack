@@ -13,19 +13,21 @@
   } */
 
   .chat,#chatbox {
-    width: 80%;
+    width: 90%;
     border: solid 1px rgb(139, 134, 134);
     display: flex;
     background-image: url('../img/blackboard.jpg');
     flex-direction: column;
     padding: 10px;
     overflow-y: scroll;
-    height: 250px;
+    height: 350px;
     margin-bottom: 0%;
   }
 
   #about {
     width: 80%;
+    overflow-y: scroll;
+    height: 350px;
     background-image: url('../img/blackboard.jpg');
     color: bisque;
   }
