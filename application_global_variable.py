@@ -1,24 +1,20 @@
 import os, time
 from flask import Flask, render_template, request, jsonify
 from flask_socketio import SocketIO, emit
-from sqlalchemy import create_engine
-from sqlalchemy.orm import scoped_session, sessionmaker
-
+#from werkzeug import secure_filename
 
 app = Flask(__name__)
-engine = create_engine('sqlite:///chats.db')
-db = scoped_session(sessionmaker(bind=engine))
+
 
 app.config["SECRET_KEY"] = 'SECRET!'
 app.config['DEBUG'] = False
 #app.config["SECRET_KEY"] = os.getenv("SECRET_KEY")
 app.config['UPLOAD_FOLDER'] = 'uploads/'
-socket = SocketIO(app,engineio_logger=False,log_output=False,async_mode='eventlet')
+socket = SocketIO(app,engineio_logger=True,log_output=False,async_mode='eventlet')
 #socket = SocketIO(app,async_mode='eventlet')
 #socket = SocketIO(app)
 
-channels = []
-#channels = ['School','Friends','Office']
+channels = ['School','Friends','Office']
 users = {}
 messages ={
     'School':[
@@ -42,27 +38,15 @@ def index():
 @app.route('/login', methods=['POST','GET'])
 def login():
 
-    global users
-
     if request.method == 'POST':
         username = request.form.get('username').capitalize()
         channel = 'School'
     else:
         username = request.args.get('username')
         channel = request.args.get('channel')
-    users = db.execute("select username,sid from users").fetchall()
-    users = {u1:s for u1,s in users }
 
     if username not in users:
-        print('New user Logged',username)
-        users[username] = ''
-        try:
-            id = db.execute("select max(id) as id from users").fetchone()
-            id = int(id[0])+1
-        except :
-            id = 1
-        db.execute("insert into users values (:id,:username,:sid)",{'id':id,'username':username,'sid':''})
-        db.commit()
+        users[username] = 'sid'
 
     return loadpage(username,channel,text1='Loggedin Successfully')
 
@@ -75,44 +59,18 @@ def createchannel():
         text1 = "Channel already exists"
     else:
         channels.append(newchannel)
-        try:
-            id = db.execute("select max(id) as id from channels").fetchone()
-            id = int(id[0])+1
-        except :
-            id = 1
-        db.execute("insert into channels (id,channel_name) values (:id,:newchannel)",{"id":id,'newchannel':newchannel})
-        
-        db.commit()
         messages[newchannel] = []
         text1 = "Channel Added Successfully"
     return loadpage(username,newchannel,text1)
 
 
 def loadpage(username,channel,text1=''):
-    channel_list = db.execute("select channel_name from channels").fetchall()
-    channels = [chl3 for chl2 in channel_list for chl3 in chl2]
     return render_template('index.html',channels=channels,channel=channel,user=username,text1=text1)
 
 @app.route('/getmsg/<string:channel>',methods=['GET'])
 def getmsg(channel):
-    msgs = []
     try:
-        channel_id = db.execute("select id from channels where channel_name = :channel_name", {'channel_name' : channel}).fetchone()
-        channel_id = int(channel_id[0])
-
-        msg1 = db.execute("""select (select username from users where id = messages.user_id) as username, 
-                            msg,time_stamp 
-                            from messages inner join channels 
-                            on messages.channel_id = channels.id 
-                            where messages.channel_id = :channel_id """, {
-                                'channel_id' : channel_id
-                            }).fetchall()
-        
-        for m1 in msg1:
-            msgs.append({'user' : m1[0] , 'msg' : m1[1] , 'time' : m1[2]})
-
-        #msgs = messages[channel]
-        #print(msgs)
+        msgs = messages[channel]
     except KeyError:
         pass
     return jsonify({'msgs':msgs})
@@ -138,10 +96,7 @@ def about():
 
 @socket.on('register sid')
 def registersid(data):
-    sid = request.sid
-    users[data['username']] = sid
-    db.execute("update users set sid = :sid where username = :username",{'sid':sid,'username':data['username']})
-    db.commit()
+    users[data['username']] = request.sid
     emit('announce connected',data,broadcast=True)
 
 @socket.on('disconnect')
@@ -150,9 +105,6 @@ def deregistersid():
     a1 = [user for user,s in users.items() if s == sid]
     try:
         a1 = a1[0]
-        # print(type(a1))
-        # db.execute("update users set sid = '' where username = :username",{'username',a1})
-        # db.commit()
     except IndexError:
         pass
     emit('announce disconnected',{'user':a1},broadcast=True)
@@ -168,42 +120,11 @@ def submitmsg(data):
         messages[data['channel']].pop(0) 
     messages[data['channel']].append(currMsg)
     data['time'] = curTime
-
-    try:
-        id = db.execute("select max(id) as id from messages").fetchone()
-        id = int(id[0])+1
-    except:
-        id = 1
-    
-    channel_id = db.execute("select id from channels where channel_name = :channel_name", {'channel_name':data['channel']}).fetchone()
-    channel_id = int(channel_id[0])
-
-    user_id = db.execute("select id from users where username = :user_name", {'user_name':user}).fetchone()
-    user_id = int(user_id[0])
-
-    db.execute("insert into messages (id,channel_id,user_id,time_stamp,msg) values (:id,:channel_id,:user_id,:time_stamp,:msg)", {
-        'id':id,'channel_id':channel_id,'user_id':user_id,'time_stamp':curTime,'msg':msg
-    })
-    db.commit()
     emit('submit done',data,broadcast=True)
 
 @socket.on('del-msg')
 def delmsg(data):
-
-    db.execute("""delete from messages where 
-                time_stamp = :time_stamp 
-                and msg = :msg 
-                and user_id = (select id from users where username = :username)
-                and channel_id = (select id from channels where channel_name = :channel_name)""", {
-                    'time_stamp' : data['time'],
-                    'msg' : data['msg'],
-                    'username' : data['username'],
-                    'channel_name' : data['channel']
-                })
-    db.commit()
-
     msgs = messages[data['channel']]
-
     for i in range(len(msgs)):
         if msgs[i]['user'] == data['username'] and msgs[i]['msg'] == data['msg'] and msgs[i]['time'] == data['time']:
             msgToDelete = msgs[i]
@@ -225,5 +146,5 @@ def pvtmsg(data):
 
 
 if __name__ == "__main__":
-    socket.run(app,host="0.0.0.0",port=int(os.environ["PORT"].rstrip()),debug=False)
+    socket.run(app,host="0.0.0.0",port=int(os.environ["PORT"].rstrip()))
     #socket.run(app,debug=False)

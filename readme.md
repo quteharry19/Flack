@@ -32,6 +32,4 @@ no database is used to store messages or channels everything is stored in python
 
 1. user can delete his/her own messages by pressing the red delete icon near his message - socket connection used for this to delete mesaage from server side.
 
-2. user can send the private message to any user who had already send atleast one message in any chat by clicking on the username/display namee associated with the message. if that user had become offline a alert messages with user disconnected will be popped.
-
-3. file upload to the server can be done which will call the http route on server
+2. user can send the private message to any user who had already send atleast one message in any chat by clicking on the username/display name associated with the message.
