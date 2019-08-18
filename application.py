@@ -148,19 +148,22 @@ def about():
 
 @socket.on('register sid')
 def registersid(data):
+    global users
     sid = request.sid
     users[data['username']] = sid
+    print(users)
     db.execute("update users set sid = :sid where username = :username",{'sid':sid,'username':data['username']})
     db.commit()
     emit('announce connected',data,broadcast=True)
 
 @socket.on('disconnect')
 def deregistersid():
+    global users
     sid = request.sid
     a1 = [user for user,s in users.items() if s == sid]
     try:
         a1 = a1[0]
-        # print(type(a1))
+        print(type(a1))
         # db.execute("update users set sid = '' where username = :username",{'username',a1})
         # db.commit()
     except IndexError:
@@ -226,6 +229,7 @@ def delmsg(data):
 
 @socket.on('pvt msg')
 def pvtmsg(data):
+    global users
     toUser = data['toUser'].strip()
     try:
         tosid = users[toUser]
