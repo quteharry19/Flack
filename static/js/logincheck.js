@@ -18,7 +18,7 @@ callchannels = () => {
     var channel = 'School';
     var username = document.querySelector('input').value;
 
-    username = username.charAt(0).toUpperCase() + username.slice(1,username.length);
+    //username = username.charAt(0).toUpperCase() + username.slice(1,username.length);
 
     localStorage.setItem('username',username);
     localStorage.setItem('channel',channel);

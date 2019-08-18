@@ -41,11 +41,9 @@ def index():
 
 @app.route('/login', methods=['POST','GET'])
 def login():
-
-    global users
-
+    global channels, users
     if request.method == 'POST':
-        username = request.form.get('username').capitalize()
+        username = request.form.get('username')
         channel = 'School'
     else:
         username = request.args.get('username')
@@ -61,13 +59,14 @@ def login():
         db.execute("insert into users values (:id,:username,:sid)",{'id':id,'username':username,'sid':''})
         db.commit()
 
-    channels = db.execute("select channel_name from channels").fetchall()
-    channels = [chl[0] for chl in channels]
+    channel_list = db.execute("select channel_name from channels").fetchall()
+    channels = [chl[0] for chl in channel_list]
 
     if channel not in channels :
         id = get_max_id("channels")
         db.execute("insert into channels values (:id,:channel_name)",{'id':id,'channel_name':channel})
         db.commit()
+        channels.append(channel)
 
     return loadpage(username,channel,text1='Loggedin Successfully')
 
@@ -82,8 +81,12 @@ def get_max_id(table_name):
 
 @app.route('/createchannel', methods=['POST'])
 def createchannel():
+    global channels
     newchannel = request.form.get('newchannel')
     username = request.form.get('username')
+    channel_list = db.execute("select channel_name from channels").fetchall()
+    channels = [chl[0] for chl in channel_list]
+
     if newchannel in channels:
         text1 = "Channel already exists"
     else:
@@ -99,6 +102,7 @@ def createchannel():
 
 
 def loadpage(username,channel,text1=''):
+    global channels
     channel_list = db.execute("select channel_name from channels").fetchall()
     channels = [chl3 for chl2 in channel_list for chl3 in chl2]
     return render_template('index.html',channels=channels,channel=channel,user=username,text1=text1)
@@ -151,7 +155,6 @@ def registersid(data):
     global users
     sid = request.sid
     users[data['username']] = sid
-    print(users)
     db.execute("update users set sid = :sid where username = :username",{'sid':sid,'username':data['username']})
     db.commit()
     emit('announce connected',data,broadcast=True)
@@ -161,17 +164,15 @@ def deregistersid():
     global users
     sid = request.sid
     a1 = [user for user,s in users.items() if s == sid]
-    try:
-        a1 = a1[0]
-        print(type(a1))
-        # db.execute("update users set sid = '' where username = :username",{'username',a1})
-        # db.commit()
-    except IndexError:
-        pass
+    a1 = a1[0]
+    db.execute("update users set sid = '' where username = :username",{'username':a1})
+    db.commit()
+    users[a1] = ''
     emit('announce disconnected',{'user':a1},broadcast=True)
 
 @socket.on('submit msg')
 def submitmsg(data):
+    global messages
     user = data['user']
     msg = data['msg']
     curTime = time.ctime()
@@ -230,13 +231,19 @@ def delmsg(data):
 @socket.on('pvt msg')
 def pvtmsg(data):
     global users
+
     toUser = data['toUser'].strip()
+
     try:
         tosid = users[toUser]
     except KeyError:
         mySid = users[data['fromUser']]
         emit('pvt msg offline',data,room=mySid)
-    emit('pvt msg done',data,room=tosid)
+    if tosid == '' :
+        mySid = users[data['fromUser']]
+        emit('pvt msg offline',data,room=mySid)
+    else :
+        emit('pvt msg done',data,room=tosid)
 
 
 if __name__ == "__main__":
