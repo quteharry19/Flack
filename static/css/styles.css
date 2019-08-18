@@ -5,7 +5,12 @@
     background: linear-gradient(120deg,silver,grey);
     padding: 0%;
 }
-/* body {
+
+body {
+  overflow: auto ;
+}
+
+  /* body {
     font-family: helvetica;
     display: flex ;
     flex-direction: column;
@@ -13,21 +18,24 @@
   } */
 
   .chat,#chatbox {
-    width: 90%;
+    width: 90vw;
     border: solid 1px rgb(139, 134, 134);
     display: flex;
     background-image: url('../img/blackboard.jpg');
     flex-direction: column;
-    padding: 10px;
+    padding: 5px;
     overflow-y: scroll;
-    height: 350px;
-    margin-bottom: 0%;
+    min-height: 70vh;
+    max-height: 70vh;
+
+    /* height: 350px; */
+    margin-bottom: 10px;
   }
 
   #about {
-    width: 80%;
+    width: 90vw;
     overflow-y: scroll;
-    height: 350px;
+    /* height: 350px; */
     background-image: url('../img/blackboard.jpg');
     color: bisque;
   }
