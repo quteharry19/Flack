@@ -9,9 +9,9 @@ app = Flask(__name__)
 engine = create_engine('sqlite:///chats.db')
 db = scoped_session(sessionmaker(bind=engine))
 
-app.config["SECRET_KEY"] = 'SECRET!'
+#app.config["SECRET_KEY"] = 'SECRET!'
 app.config['DEBUG'] = False
-#app.config["SECRET_KEY"] = os.getenv("SECRET_KEY")
+app.config["SECRET_KEY"] = os.getenv("SECRET_KEY")
 app.config['UPLOAD_FOLDER'] = 'uploads/'
 socket = SocketIO(app,engineio_logger=False,log_output=False,async_mode='eventlet')
 #socket = SocketIO(app,async_mode='eventlet')
@@ -20,19 +20,19 @@ socket = SocketIO(app,engineio_logger=False,log_output=False,async_mode='eventle
 channels = []
 #channels = ['School','Friends','Office']
 users = {}
-messages ={
-    'School':[
-        {'user':'Riya','msg':'hello1 School','time':'123'},
-        {'user':'Diya','msg':'hello2 School','time':'1234'}
-        ],
-    'Friends':[
-        {'user':'Diya','msg':'hello1 Friends','time':'123'}
-    ],
-    'Office':[
-        {'user':'Harish','msg':'hello1 Office','time':'123'}
-    ]
-}
-
+# messages ={
+#     'School':[
+#         {'user':'Riya','msg':'hello1 School','time':'123'},
+#         {'user':'Diya','msg':'hello2 School','time':'1234'}
+#         ],
+#     'Friends':[
+#         {'user':'Diya','msg':'hello1 Friends','time':'123'}
+#     ],
+#     'Office':[
+#         {'user':'Harish','msg':'hello1 Office','time':'123'}
+#     ]
+# }
+messages = {}
 
 @app.route('/')
 def index():
@@ -50,22 +50,35 @@ def login():
     else:
         username = request.args.get('username')
         channel = request.args.get('channel')
-    users = db.execute("select username,sid from users").fetchall()
-    users = {u1:s for u1,s in users }
+
+    users_query = db.execute("select username,sid from users").fetchall()
+    users = {u1:s for u1,s in users_query }
 
     if username not in users:
         print('New user Logged',username)
         users[username] = ''
-        try:
-            id = db.execute("select max(id) as id from users").fetchone()
-            id = int(id[0])+1
-        except :
-            id = 1
+        id = get_max_id("users")
         db.execute("insert into users values (:id,:username,:sid)",{'id':id,'username':username,'sid':''})
+        db.commit()
+
+    channels = db.execute("select channel_name from channels").fetchall()
+    channels = [chl[0] for chl in channels]
+
+    if channel not in channels :
+        id = get_max_id("channels")
+        db.execute("insert into channels values (:id,:channel_name)",{'id':id,'channel_name':channel})
         db.commit()
 
     return loadpage(username,channel,text1='Loggedin Successfully')
 
+
+def get_max_id(table_name):
+    id = db.execute(f"select max(id) as id from {table_name}").fetchone()
+    if id[0] is None:
+        id = 1
+    else :
+        id = int(id[0])+1
+    return id
 
 @app.route('/createchannel', methods=['POST'])
 def createchannel():
@@ -75,13 +88,10 @@ def createchannel():
         text1 = "Channel already exists"
     else:
         channels.append(newchannel)
-        try:
-            id = db.execute("select max(id) as id from channels").fetchone()
-            id = int(id[0])+1
-        except :
-            id = 1
-        db.execute("insert into channels (id,channel_name) values (:id,:newchannel)",{"id":id,'newchannel':newchannel})
-        
+        print('channels after append',channels)
+        id = get_max_id("channels")
+        db.execute("""insert into channels (id,channel_name) 
+                    values (:id, :newchannel)""", {"id": id, 'newchannel': newchannel })
         db.commit()
         messages[newchannel] = []
         text1 = "Channel Added Successfully"
@@ -163,23 +173,24 @@ def submitmsg(data):
     msg = data['msg']
     curTime = time.ctime()
     currMsg = {'user':user,'msg':msg,'time':curTime}
-    msglen = len(messages[data['channel']])
-    if msglen >= 100:
-        messages[data['channel']].pop(0) 
-    messages[data['channel']].append(currMsg)
-    data['time'] = curTime
 
     try:
-        id = db.execute("select max(id) as id from messages").fetchone()
-        id = int(id[0])+1
-    except:
-        id = 1
+        msglen = len(messages[data['channel']])
+        if msglen >= 100:
+            messages[data['channel']].pop(0) 
+        messages[data['channel']].append(currMsg)
+    except KeyError:
+        msglen = 0
+        messages[data['channel']] = [currMsg]
+    data['time'] = curTime
     
     channel_id = db.execute("select id from channels where channel_name = :channel_name", {'channel_name':data['channel']}).fetchone()
     channel_id = int(channel_id[0])
 
     user_id = db.execute("select id from users where username = :user_name", {'user_name':user}).fetchone()
     user_id = int(user_id[0])
+
+    id = get_max_id("messages")
 
     db.execute("insert into messages (id,channel_id,user_id,time_stamp,msg) values (:id,:channel_id,:user_id,:time_stamp,:msg)", {
         'id':id,'channel_id':channel_id,'user_id':user_id,'time_stamp':curTime,'msg':msg
@@ -225,5 +236,5 @@ def pvtmsg(data):
 
 
 if __name__ == "__main__":
-    socket.run(app,host="0.0.0.0",port=int(os.environ["PORT"].rstrip()),debug=False)
+    socket.run(app,port=int(os.environ["PORT"].rstrip()),debug=False)
     #socket.run(app,debug=False)

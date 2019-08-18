@@ -25,6 +25,9 @@ join channels on messages.channel_id = channels.id where messages.channel_id = 1
 
 select id from channels where channel_name = "School";
 
+DELETE from users;
+DELETE from channels;
+DELETE from messages;
 
 
 
