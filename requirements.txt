@@ -2,7 +2,7 @@ astroid==2.2.5
 Click==7.0
 colorama==0.4.1
 dnspython==1.16.0
-eventlet==0.25.0
+eventlet==0.31.0
 Flask==1.1.1
 Flask-SocketIO==4.1.0
 greenlet==0.4.15
